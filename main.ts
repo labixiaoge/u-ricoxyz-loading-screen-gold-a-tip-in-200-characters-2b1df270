@@ -23,9 +23,13 @@ writeFileSync(join(outputDir, "entry.txt"), LINE, "utf8");
 
 // Read-back: the file on disk must be byte-identical to the entry line,
 // so a partial write or stray newline can never slip through silently.
-if (readFileSync(join(outputDir, "entry.txt"), "utf8") !== LINE) {
+// Compare bytes, not just the decoded string, so an encoding slip that
+// decodes back to the same string still fails loudly.
+const written: Buffer = readFileSync(join(outputDir, "entry.txt"));
+if (!written.equals(Buffer.from(LINE, "utf8"))) {
   throw new Error("entry.txt on disk does not match the entry line.");
 }
 
-console.log(`Characters: ${charCount}`);
+const byteCount: number = Buffer.byteLength(LINE, "utf8");
+console.log(`Characters: ${charCount} (${byteCount} bytes)`);
 console.log(LINE);
